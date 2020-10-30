@@ -86,14 +86,24 @@ class DeepLabV3(nn.Module):
     def __init__(self, num_classes):
         super(DeepLabV3, self).__init__()
         self.num_classes = num_classes
-        self.backbone = models.resnet101(pretrained=True)
-        self.aspp = DeepLabHead(in_channels=2048, num_classes=self.num_classes)
-        self.aux_classifier = AuxClassifier()
+        self.backbone = models.resnet50(pretrained=True)
+        self.aspp = DeepLabHead(in_channels=1024, num_classes=self.num_classes)
 
     def forward(self, x):
         _, _, h, w = x.shape
-        x = self.backbone(x)
+        x = self.resnet_feature_extract(self.backbone, x)
         x = self.aspp(x)
-        x = self.aux_classifier(x)
-        x = F.interpolate(x, size=(h, w), mode='bilinear')
+        # x = self.aux_classifier(x)
+        x = F.interpolate(x, size=(h, w), mode='bilinear', align_corners=True)
+        return x
+
+    def resnet_feature_extract(self, resnet, x):
+        x = resnet.conv1(x)
+        x = resnet.bn1(x)
+        x = resnet.relu(x)
+        x = resnet.maxpool(x)
+
+        x = resnet.layer1(x)
+        x = resnet.layer2(x)
+        x = resnet.layer3(x)
         return x
