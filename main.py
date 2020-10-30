@@ -10,16 +10,16 @@ import sys
 use_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if use_cuda else 'cpu')
 NUM_CLASSES = 21
-LEARNING_RATE = 0.01
+LEARNING_RATE = 0.001
 WEIGHT_DECAY = 0.01
-EPOCHS = 30
+EPOCHS = 100
 BATCH_SIZE = 8
 
 voc_checkpoint_dir = 'chkpt/voc.pt'
 plot_dir = 'plots/'
 
 
-def train(loader, model, criterion, optimizer, device, print_every=1000):
+def train(loader, model, criterion, optimizer, device, print_every=50):
     model.train()
     train_loss = 0
     for idx, (data, target) in enumerate(loader):
@@ -80,12 +80,10 @@ def display_segmentation(dataset, model, img_path, device):
 
 if __name__ == '__main__':
     train_data = VOCSegmentation('data/')
-    val_data = VOCSegmentation('data/', image_set='trainval')
-    test_data = VOCSegmentation('data/', image_set='val',)
+    val_data = VOCSegmentation('data/', image_set='val',)
 
     train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False)
-    test_loader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=False)
 
     model = DeepLabV3(num_classes=NUM_CLASSES)
     model.to(device)
@@ -99,6 +97,8 @@ if __name__ == '__main__':
 
     train_losses = []
     val_losses = []
+
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda epoch: (1 - (epoch / EPOCHS)) ** 0.9)
 
 
     for epoch in range(1, EPOCHS+1):
@@ -133,12 +133,9 @@ if __name__ == '__main__':
         plt.savefig(f'{plot_dir}/val_loss.png')
         plt.close()
 
+        scheduler.step()
 
-    test_loss = eval(test_loader, model, criterion, device)
-    display_segmentation(test_data, model, f'{plot_dir}/test-segmentation.png', device)
-
-
-    print(f'Train Complete, Test Loss: {test_loss}')
+    print(f'Train Complete')
 
     
 
