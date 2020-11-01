@@ -5,18 +5,22 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from deeplabv3 import DeepLabV3
 import sys
+import random
+from PIL import Image
 
 
 use_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if use_cuda else 'cpu')
 NUM_CLASSES = 21
-LEARNING_RATE = 0.001
-WEIGHT_DECAY = 0.01
+LEARNING_RATE = 1e-3
+WEIGHT_DECAY = 1e-4
 EPOCHS = 100
 BATCH_SIZE = 8
 
 voc_checkpoint_dir = 'chkpt/voc.pt'
 plot_dir = 'plots/'
+
+resume_training = False
 
 
 def train(loader, model, criterion, optimizer, device, print_every=50):
@@ -56,26 +60,39 @@ def eval(loader, model, criterion, device):
 def display_segmentation(dataset, model, img_path, device):
     model.cpu()
     model.eval()
-    sample_input, sample_target = dataset[0]
-    with torch.no_grad():
-        model_output = model(sample_input.unsqueeze(0))
-    predicted_seg = torch.argmax(model_output, dim=1)
 
-    plt.figure(figsize=(20, 8))
+    sample_data = dataset[random.randint(0, len(val_data)-1)]
+    sample = sample_data[0]
+    sample_output = sample_data[1]
+    with torch.no_grad():
+        output = model(sample.unsqueeze(0))[0]
+    output_predictions = output.argmax(0)
+
+    # create a color pallette, selecting a color for each class
+    palette = torch.tensor([2 ** 25 - 1, 2 ** 15 - 1, 2 ** 21 - 1])
+    colors = torch.as_tensor([i for i in range(21)])[:, None] * palette
+    colors = (colors % 255).numpy().astype("uint8")
+
+    # plot the semantic segmentation predictions of 21 classes in each color
+    r = Image.fromarray(output_predictions.byte().cpu().numpy()).resize(sample.size()[1:])
+    r.putpalette(colors)
+
+    s = Image.fromarray(sample_output.byte().cpu().numpy()).resize(sample.size()[1:])
+    s.putpalette(colors)
+
     plt.subplot(1, 3, 1)
-    plt.imshow(sample_input.transpose(0, 1).transpose(1, 2).long())
+    plt.imshow(sample.transpose(0, 1).transpose(1, 2).long())
     plt.subplot(1, 3, 2)
-    plt.imshow(sample_target)
-    plt.clim(0,20)
-    plt.colorbar(fraction=0.046, pad=0.04)
+    plt.imshow(r)
     plt.subplot(1, 3, 3)
-    plt.imshow(predicted_seg.squeeze())
-    plt.clim(0,20)
-    plt.colorbar(fraction=0.046, pad=0.04)
+    plt.imshow(s)
+
     plt.savefig(img_path)
     plt.close()
 
     model.to(device)
+
+    
     
 
 if __name__ == '__main__':
@@ -86,6 +103,10 @@ if __name__ == '__main__':
     val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False)
 
     model = DeepLabV3(num_classes=NUM_CLASSES)
+
+    if resume_training:
+        model = torch.load(voc_checkpoint_dir)
+
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
