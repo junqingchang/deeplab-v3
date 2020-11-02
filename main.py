@@ -1,24 +1,33 @@
 import torch
 import torch.nn as nn
+from torch.utils.data import dataset
 from voc import VOCSegmentation
+from cityscapes import Cityscapes
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from deeplabv3 import DeepLabV3
 import sys
 import random
 from PIL import Image
+import os
 
 
 use_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if use_cuda else 'cpu')
-NUM_CLASSES = 21
+NUM_CLASSES = 35 #21 for VOC, 35 for Cityscapes
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 EPOCHS = 100
-BATCH_SIZE = 8
+BATCH_SIZE = 2
 
-voc_checkpoint_dir = 'chkpt/voc.pt'
-plot_dir = 'plots/'
+checkpoint_dir = 'chkpt'
+if not os.path.exists(checkpoint_dir):
+    os.mkdir(checkpoint_dir)
+
+dataset_type = 'cityscapes'
+plot_dir = f'{dataset_type}plots/'
+if not os.path.exists(plot_dir):
+    os.mkdir(plot_dir)
 
 resume_training = False
 
@@ -61,7 +70,7 @@ def display_segmentation(dataset, model, img_path, device):
     model.cpu()
     model.eval()
 
-    sample_data = dataset[random.randint(0, len(val_data)-1)]
+    sample_data = dataset[random.randint(0, len(dataset)-1)]
     sample = sample_data[0]
     sample_output = sample_data[1]
     with torch.no_grad():
@@ -92,12 +101,37 @@ def display_segmentation(dataset, model, img_path, device):
 
     model.to(device)
 
-    
-    
+def display_segmentation_cityscapes(dataset, model, img_path, device):
+    model.cpu()
+    model.eval()
+
+    sample_data = dataset[random.randint(0, len(dataset)-1)]
+    sample = sample_data[0]
+    sample_output = sample_data[1]
+    with torch.no_grad():
+        output = model(sample.unsqueeze(0))[0]
+    output_predictions = output.argmax(0)
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(sample.transpose(0, 1).transpose(1, 2).long())
+    plt.subplot(1, 3, 2)
+    plt.imshow(sample_output)
+    plt.subplot(1, 3, 3)
+    plt.imshow(output_predictions.long())
+
+    plt.savefig(img_path)
+    plt.close()
+
+    model.to(device)
+
 
 if __name__ == '__main__':
-    train_data = VOCSegmentation('data/')
-    val_data = VOCSegmentation('data/', image_set='val',)
+    if dataset_type == 'voc':
+        train_data = VOCSegmentation('data/')
+        val_data = VOCSegmentation('data/', image_set='val',)
+    elif dataset_type == 'cityscapes':
+        train_data = Cityscapes('data/')
+        val_data = Cityscapes('data/', split='val')
 
     train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False)
@@ -105,7 +139,10 @@ if __name__ == '__main__':
     model = DeepLabV3(num_classes=NUM_CLASSES)
 
     if resume_training:
-        model = torch.load(voc_checkpoint_dir)
+        if dataset_type == 'voc':
+            model = torch.load(f'{checkpoint_dir}/voc.pt')
+        elif dataset_type == 'cityscapes':
+            model = torch.load(f'{checkpoint_dir}/cityscapes.pt')
 
     model.to(device)
 
@@ -136,7 +173,10 @@ if __name__ == '__main__':
         if val_loss < best_loss:
             best_loss = val_loss
             print('Better model, saving new model!')
-            torch.save(model, voc_checkpoint_dir)
+            if dataset_type == 'voc':
+                torch.save(model, f'{checkpoint_dir}/voc.pt')
+            elif dataset_type == 'cityscapes':
+                torch.save(model, f'{checkpoint_dir}/cityscapes.pt')
 
         plt.figure()
         plt.title('Train Losses')
