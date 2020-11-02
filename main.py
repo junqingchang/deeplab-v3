@@ -19,6 +19,7 @@ LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 EPOCHS = 100
 BATCH_SIZE = 2
+SAVE_MODEL_EVERY = 10
 
 checkpoint_dir = 'chkpt'
 if not os.path.exists(checkpoint_dir):
@@ -151,7 +152,6 @@ if __name__ == '__main__':
                                  lr=LEARNING_RATE,
                                  weight_decay=WEIGHT_DECAY)
 
-    best_loss = sys.maxsize
 
     train_losses = []
     val_losses = []
@@ -170,13 +170,11 @@ if __name__ == '__main__':
 
         display_segmentation(val_data, model, f'{plot_dir}/epoch{epoch}-val-segmentation.png', device)
 
-        if val_loss < best_loss:
-            best_loss = val_loss
-            print('Better model, saving new model!')
+        if epoch % SAVE_MODEL_EVERY == 0:
             if dataset_type == 'voc':
-                torch.save(model, f'{checkpoint_dir}/voc.pt')
+                torch.save(model, f'{checkpoint_dir}/voc-epoch{epoch}.pt')
             elif dataset_type == 'cityscapes':
-                torch.save(model, f'{checkpoint_dir}/cityscapes.pt')
+                torch.save(model, f'{checkpoint_dir}/cityscapes-epoch{epoch}.pt')
 
         plt.figure()
         plt.title('Train Losses')
@@ -196,6 +194,10 @@ if __name__ == '__main__':
 
         scheduler.step()
 
+    if dataset_type == 'voc':
+        torch.save(model, f'{checkpoint_dir}/voc-completed.pt')
+    elif dataset_type == 'cityscapes':
+        torch.save(model, f'{checkpoint_dir}/cityscapes-completed.pt')
     print(f'Train Complete')
 
     
