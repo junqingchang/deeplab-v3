@@ -18,7 +18,7 @@ NUM_CLASSES = 35 #21 for VOC, 35 for Cityscapes
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 EPOCHS = 100
-BATCH_SIZE = 2
+BATCH_SIZE = 8
 SAVE_MODEL_EVERY = 10
 
 checkpoint_dir = 'chkpt'
@@ -131,8 +131,8 @@ if __name__ == '__main__':
         train_data = VOCSegmentation('data/')
         val_data = VOCSegmentation('data/', image_set='val',)
     elif dataset_type == 'cityscapes':
-        train_data = Cityscapes('data/')
-        val_data = Cityscapes('data/', split='val')
+        train_data = Cityscapes('data/', h=256, w=512)
+        val_data = Cityscapes('data/', split='val', h=256, w=512)
 
     train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False)
