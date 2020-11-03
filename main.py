@@ -14,7 +14,7 @@ import os
 
 use_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if use_cuda else 'cpu')
-NUM_CLASSES = 35 #21 for VOC, 35 for Cityscapes
+NUM_CLASSES = 21 #21 for VOC, 35 for Cityscapes
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 EPOCHS = 100
@@ -25,7 +25,7 @@ checkpoint_dir = 'chkpt'
 if not os.path.exists(checkpoint_dir):
     os.mkdir(checkpoint_dir)
 
-dataset_type = 'cityscapes'
+dataset_type = 'voc'
 plot_dir = f'{dataset_type}plots/'
 if not os.path.exists(plot_dir):
     os.mkdir(plot_dir)

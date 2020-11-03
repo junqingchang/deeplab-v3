@@ -6,7 +6,7 @@ from PIL import Image
 
 
 
-voc_checkpoint_dir = 'chkpt/voc.pt'
+voc_checkpoint_dir = 'chkpt/voc-epoch100.pt'
 
 if __name__ == '__main__':
     model = torch.load(voc_checkpoint_dir)
