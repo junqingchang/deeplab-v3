@@ -8,7 +8,7 @@ class ASPP(nn.Module):
   '''
   References https://github.com/AvivSham/DeepLabv3 for ASPP module
   '''
-  def __init__(self,in_channels,out_channels = 256):
+  def __init__(self, in_channels, out_channels = 256):
     super(ASPP,self).__init__()
     
     
@@ -100,7 +100,7 @@ class ASPP(nn.Module):
     x5 = self.relu(x5)
     x5 = F.interpolate(x5, size = tuple(x4.shape[-2:]), mode='bilinear', align_corners=True)
     
-    x = torch.cat((x1,x2,x3,x4,x5), dim = 1) #channels first
+    x = torch.cat((x1,x2,x3,x4,x5), dim = 1)
     x = self.convf(x)
     x = self.bnf(x)
     x = self.relu(x)
