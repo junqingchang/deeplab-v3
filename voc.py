@@ -57,13 +57,15 @@ class VOCSegmentation(Dataset):
             tuple: (image, target) where target is the image segmentation.
         """
         img = np.array(Image.open(self.images[index]))
-        img = cv2.resize(img, (self.w, self.h), cv2.INTER_NEAREST)
+        if self.h and self.w:
+            img = cv2.resize(img, (self.w, self.h), cv2.INTER_NEAREST)
 
         target = Image.open(self.masks[index])
         target = np.array(target)
         idx255 = target == np.ones_like(target) * 255
         target[idx255] = 0
-        target = cv2.resize(target, (self.w, self.h), cv2.INTER_NEAREST)
+        if self.h and self.w:
+            target = cv2.resize(target, (self.w, self.h), cv2.INTER_NEAREST)
 
         return torch.Tensor(img).transpose(2, 1).transpose(0, 1), torch.Tensor(target)
 

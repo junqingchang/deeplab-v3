@@ -11,7 +11,7 @@ voc_checkpoint_dir = 'chkpt/voc-epoch100.pt'
 if __name__ == '__main__':
     model = torch.load(voc_checkpoint_dir)
     model.to('cpu').eval()
-    val_data = VOCSegmentation('data/', image_set='val')
+    val_data = VOCSegmentation('data/', image_set='val', h=None, w=None)
 
     sample_data = val_data[random.randint(0, len(val_data)-1)]
     sample = sample_data[0]
@@ -26,16 +26,19 @@ if __name__ == '__main__':
     colors = (colors % 255).numpy().astype("uint8")
 
     # plot the semantic segmentation predictions of 21 classes in each color
-    r = Image.fromarray(output_predictions.byte().cpu().numpy()).resize(sample.size()[1:])
+    r = Image.fromarray(output_predictions.byte().cpu().numpy())
     r.putpalette(colors)
 
-    s = Image.fromarray(sample_output.byte().cpu().numpy()).resize(sample.size()[1:])
+    s = Image.fromarray(sample_output.byte().cpu().numpy())
     s.putpalette(colors)
 
     plt.subplot(1, 3, 1)
+    plt.title('Original')
     plt.imshow(sample.transpose(0, 1).transpose(1, 2).long())
     plt.subplot(1, 3, 2)
+    plt.title('Prediction')
     plt.imshow(r)
     plt.subplot(1, 3, 3)
+    plt.title('Target')
     plt.imshow(s)
     plt.show()
