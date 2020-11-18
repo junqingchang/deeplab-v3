@@ -19,7 +19,7 @@ NUM_CLASSES = 1001 #21 for VOC, 35 for Cityscapes, 1001 for FSS1000
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 EPOCHS = 100
-BATCH_SIZE = 2
+BATCH_SIZE = 8
 SAVE_MODEL_EVERY = 10
 
 checkpoint_dir = 'chkpt'
