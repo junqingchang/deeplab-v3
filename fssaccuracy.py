@@ -1,13 +1,13 @@
 import torch
 from torch.utils.data import DataLoader
-from voc import VOCSegmentation
+from fss1000 import FSS1000
 import numpy as np
 
 
-voc_checkpoint_dir = 'chkpt/voc-epoch100.pt'
+voc_checkpoint_dir = 'chkpt/fss1000-epoch90.pt'
 use_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if use_cuda else 'cpu')
-num_classes = 21
+num_classes = 1001
 
 def intersect_and_union(pred, target, num_class):
     '''
@@ -44,7 +44,7 @@ def calculate_accuracy(loader, model, device):
             total_union += union
             
     total_union[total_union == 0] = 1
-    iou = total_intersect/total_union
+    iou = (total_intersect/total_union)
     avg_iou = np.mean(iou)
     return avg_iou
 
@@ -53,7 +53,7 @@ def calculate_accuracy(loader, model, device):
 if __name__ == '__main__':
     model = torch.load(voc_checkpoint_dir)
 
-    val_data = VOCSegmentation('data/', image_set='val', h=None, w=None)
+    val_data = FSS1000('data/', image_set='val', h=224, w=224)
     val_loader = DataLoader(val_data, batch_size=1, shuffle=False)
 
     avg_iou = calculate_accuracy(val_loader, model, device)

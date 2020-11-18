@@ -1,6 +1,11 @@
 # DeeplabV3
 Reimplementation of deeplabv3 for Image Segmentation course using torchvision 
 
+## Details on Project
+A review on DeeplabV3 and how well it performs without any data augmentation (i.e. only how well the architecture will perform)
+
+Note that even though cityscapes is implemented, no training was done on it due to resource constraints. The code has not been fully run due to that and can be prone to bugs.
+
 ## Directory Structure
 ```
 chkpt/
@@ -8,14 +13,22 @@ chkpt/
 data/
     VOCdevkit/
         ...
+fss1000plots/
 vocplots/
     epoch1-val-segmentation.png
     ...
 .gitignore
 cityscapes.py
 deeplabv3.py
-main.py
+fss1000.py
+fssaccuracy.py
 README.md
-visualise.py
+train.py
+visualisefss.py
+visualisevoc.py
 voc.py
+vocaccuracy.py
 ```
+
+## Models
+Pretrained models are available at https://drive.google.com/drive/folders/16DyapBgw4mqJ0QmOyk8TPs0MUBBDg2gC?usp=sharing
