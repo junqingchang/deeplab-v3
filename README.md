@@ -32,3 +32,24 @@ vocaccuracy.py
 
 ## Models
 Pretrained models are available at https://drive.google.com/drive/folders/16DyapBgw4mqJ0QmOyk8TPs0MUBBDg2gC?usp=sharing
+
+## Training
+To train new model
+```
+$ python train.py
+```
+Parameters can be set in the file to toggle between different datasets
+
+## Evaluation and Visualisation
+To evalute models
+```
+$ python vocaccuracy.py
+$ python fssaccuracy.py
+```
+
+To visualise segmentation
+```
+$ python visualisevoc.py
+$ python visualisefss.py
+```
+Visualisation can be toggled to see the best segmentations and the worst
